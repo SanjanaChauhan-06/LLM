@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LLM Pipeline Explorer | White & Blue Vertical Slide Edition</title>
+  
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="css/styles.css">
+  
+  <!-- External Libraries: Three.js & GSAP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- ============================================================
+         APP HEADER & STICKY STEPPER NAVIGATION (WHITE & BLUE)
+         ============================================================ -->
+    <header class="app-header">
+      <div class="header-top">
+        <div class="brand-wrapper">
+          <div class="brand-logo-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+          </div>
+          <div>
+            <h1 class="brand-title">LLM Pipeline Explorer</h1>
+            <div class="brand-subtitle">
+              Visualizing Language Models: Sentences to High-Dimensional Vectors • <span id="header-current-stage" class="text-cyan-400 font-bold">1. Vocabulary Builder</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <button id="btn-reset-pipeline" class="btn btn-secondary btn-sm" title="Reset all data to default state">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            Reset Session
+          </button>
+        </div>
+      </div>
+
+      <!-- Stepper Navigation (5 Focused Modules) -->
+      <nav class="pipeline-stepper" aria-label="Pipeline Stages">
+        <div class="step-item active" data-stage="1">
+          <span class="step-number">1</span>
+          <span>Vocabulary Builder</span>
+        </div>
+        <div class="step-divider"></div>
+        <div class="step-item" data-stage="2">
+          <span class="step-number">2</span>
+          <span>Tokenization</span>
+        </div>
+        <div class="step-divider"></div>
+        <div class="step-item" data-stage="3">
+          <span class="step-number">3</span>
+          <span>Token Count</span>
+        </div>
+        <div class="step-divider"></div>
+        <div class="step-item" data-stage="4">
+          <span class="step-number">4</span>
+          <span>Vector Embeddings</span>
+        </div>
+        <div class="step-divider"></div>
+        <div class="step-item" data-stage="5">
+          <span class="step-number">5</span>
+          <span>Similarity Explorer</span>
+        </div>
+      </nav>
+    </header>
+
+    <!-- ============================================================
+         VERTICAL SLIDE FLOATING NAVIGATOR (DOTS ON RIGHT)
+         ============================================================ -->
+    <nav class="vertical-slide-nav" aria-label="Vertical Slide Navigation">
+      <div class="slide-nav-dot active" data-slide="1" title="Slide 1: Sentence & Vocabulary">
+        <span class="dot-tooltip">1. Vocabulary Builder</span>
+      </div>
+      <div class="slide-nav-dot" data-slide="2" title="Slide 2: Tokenization">
+        <span class="dot-tooltip">2. Tokenization</span>
+      </div>
+      <div class="slide-nav-dot" data-slide="3" title="Slide 3: Token Count">
+        <span class="dot-tooltip">3. Token Count</span>
+      </div>
+      <div class="slide-nav-dot" data-slide="4" title="Slide 4: Vector Embeddings">
+        <span class="dot-tooltip">4. Vector Embeddings</span>
+      </div>
+      <div class="slide-nav-dot" data-slide="5" title="Slide 5: 3D & 2D Similarity Explorer">
+        <span class="dot-tooltip">5. Similarity Explorer</span>
+      </div>
+    </nav>
+
+    <!-- Floating Arrow Controls -->
+    <div class="floating-slide-arrows">
+      <button id="btn-prev-slide-float" class="btn-arrow-slide" title="Previous Slide (Arrow Up)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:18px;height:18px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"/></svg>
+      </button>
+      <button id="btn-next-slide-float" class="btn-arrow-slide" title="Next Slide (Arrow Down)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:18px;height:18px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+      </button>
+    </div>
+
+    <!-- ============================================================
+         VERTICAL SLIDE SECTIONS CONTAINER
+         ============================================================ -->
+    <main class="main-wrapper">
+
+      <!-- ========================================================
+           VERTICAL SLIDE 1: SENTENCE INPUT & VOCABULARY BUILDER
+           ======================================================== -->
+      <section id="slide-1" class="slide-section" data-stage="1">
+        <div class="glass-card mb-6">
+          <div class="card-header-bar">
+            <div>
+              <span class="slide-header-badge">Slide 01 / 05 • Modules 1 & 2</span>
+              <h2 class="card-title mt-1">Sentence Input & Vocabulary Builder</h2>
+              <p class="card-desc">Enter sentences to automatically build a vocabulary registry. Unique tokens are cataloged in order of appearance, punctuation is preserved, and ID 0 is strictly reserved for <code>[UNK]</code>.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="btn-add-sentence" class="btn btn-secondary btn-sm">+ Add Sentence</button>
+              <button id="btn-clear-sentences" class="btn btn-secondary btn-sm">Clear All</button>
+              <button id="btn-restore-sentences" class="btn btn-secondary btn-sm">Restore Default</button>
+            </div>
+          </div>
+
+          <textarea id="sentence-input-textarea" class="textarea-styled" placeholder="Enter one or more sentences (one per line)..."></textarea>
+
+          <!-- Live metrics -->
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div id="stat-total-sentences" class="stat-value text-cyan-400">3</div>
+              <div class="stat-label">Total Sentences</div>
+            </div>
+            <div class="stat-item">
+              <div id="stat-total-words" class="stat-value text-purple-400">17</div>
+              <div class="stat-label">Total Words</div>
+            </div>
+            <div class="stat-item">
+              <div id="stat-total-chars" class="stat-value text-blue-600">123</div>
+              <div class="stat-label">Total Characters</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value text-emerald-400">Preserved</div>
+              <div class="stat-label">Punctuation</div>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; margin: 1rem 0;">
+            <button id="btn-create-vocabulary" class="btn btn-primary">
+              <svg class="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+              Create / Regenerate Vocabulary
+            </button>
+          </div>
+
+          <!-- Vocabulary Table -->
+          <div id="vocab-card" class="mt-4 pt-4 border-t border-slate-200">
+            <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+              <div class="flex items-center gap-2">
+                <h3 class="font-bold text-slate-800 text-base">Generated Vocabulary Table</h3>
+                <span id="vocab-size-badge" class="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-blue-50 text-blue-700 border border-blue-200">0 tokens</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <input type="text" id="vocab-search-input" class="input-styled" placeholder="Search tokens..." style="min-width: 180px; height: 34px;">
+                <button id="sort-vocab-id" class="btn btn-secondary btn-sm">ID &#8597;</button>
+                <button id="sort-vocab-freq" class="btn btn-secondary btn-sm">Freq &#8597;</button>
+                <button id="sort-vocab-token" class="btn btn-secondary btn-sm">A-Z &#8597;</button>
+                <button id="btn-download-vocab-json" class="btn btn-secondary btn-sm">JSON</button>
+                <button id="btn-download-vocab-csv" class="btn btn-secondary btn-sm">CSV</button>
+              </div>
+            </div>
+
+            <div class="table-responsive" style="max-height: 320px;">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th style="width: 80px;">ID</th>
+                    <th>Token</th>
+                    <th style="width: 120px;">Frequency</th>
+                    <th style="width: 160px;">Token Class</th>
+                  </tr>
+                </thead>
+                <tbody id="vocab-table-body">
+                  <!-- Injected dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="slide-action-bar">
+            <span class="text-xs text-slate-400">Step 1 of 5 completed</span>
+            <button class="btn btn-primary" data-next-slide="2">Next Slide: Tokenization &darr;</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================
+           VERTICAL SLIDE 2: TOKENIZATION
+           ======================================================== -->
+      <section id="slide-2" class="slide-section" data-stage="2">
+        <div class="glass-card">
+          <div class="card-header-bar">
+            <div>
+              <span class="slide-header-badge">Slide 02 / 05 • Module 3</span>
+              <h2 class="card-title mt-1">Sentence Tokenization Engine</h2>
+              <p class="card-desc">Tokenize any sentence against your active vocabulary. Known tokens receive their assigned ID; unknown tokens receive ID 0 and are highlighted.</p>
+            </div>
+          </div>
+
+          <!-- Sentence Selection -->
+          <div style="display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: center; margin-bottom: 1.5rem;">
+            <div>
+              <label class="text-xs font-semibold text-slate-500 block mb-1">Select Sentence to Tokenize</label>
+              <select id="tokenize-sentence-select" class="input-styled" style="width: 100%;">
+                <!-- Dynamic options -->
+              </select>
+              <input type="text" id="tokenize-custom-input" class="input-styled mt-2" placeholder="Type custom sentence with known or unknown words..." style="width: 100%; display: none;">
+            </div>
+            <div style="align-self: flex-end;">
+              <button id="btn-run-tokenization" class="btn btn-primary" style="height: 40px;">
+                Tokenize Sentence
+              </button>
+            </div>
+          </div>
+
+          <!-- Tokenization Visualization -->
+          <div class="mb-4">
+            <div class="text-xs font-semibold text-slate-500 mb-1">Original Sentence</div>
+            <div id="tokenized-sentence-raw-preview" class="p-3 rounded bg-blue-50/50 border border-blue-100 text-sm font-medium text-slate-800">
+              "I love learning about artificial intelligence."
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <div class="text-xs font-semibold text-slate-500 mb-1">Tokenized Sequence (Click any token to inspect)</div>
+            <div id="token-pills-row" class="token-chip-row">
+              <!-- Token pills injected dynamically -->
+            </div>
+          </div>
+
+          <div class="mb-5">
+            <div class="text-xs font-semibold text-slate-500 mb-1">Generated Token ID Sequence Vector</div>
+            <div id="token-id-sequence-box" class="p-3 rounded bg-slate-900 font-mono text-sm text-cyan-300 border border-slate-800">
+              [ 1, 2, 3, 4, ... ]
+            </div>
+          </div>
+
+          <!-- Tokenization Detailed Table -->
+          <div class="table-responsive" style="max-height: 280px;">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th style="width: 80px;">Position</th>
+                  <th>Token</th>
+                  <th style="width: 120px;">Token ID</th>
+                  <th style="width: 140px;">Status</th>
+                </tr>
+              </thead>
+              <tbody id="tokenization-table-body">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="slide-action-bar">
+            <button class="btn btn-secondary" data-prev-slide="1">&uarr; Previous Slide</button>
+            <button class="btn btn-primary" data-next-slide="3">Next Slide: Token Count &darr;</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================
+           VERTICAL SLIDE 3: TOKEN COUNT
+           ======================================================== -->
+      <section id="slide-3" class="slide-section" data-stage="3">
+        <div class="glass-card">
+          <div class="card-header-bar">
+            <div>
+              <span class="slide-header-badge">Slide 03 / 05 • Module 4</span>
+              <h2 class="card-title mt-1">Final Token Count & Sequence Tally</h2>
+              <p class="card-desc">Track how raw words expand through tokenization before entering the LLM context window.</p>
+            </div>
+          </div>
+
+          <!-- Large Animated Counter Card (Light Blue Gradient) -->
+          <div class="big-counter-box mb-6">
+            <div id="final-token-counter-val" class="counter-number">0</div>
+            <div class="text-sm uppercase tracking-wider text-blue-900 font-bold">Total Resulting Tokens</div>
+            <div class="text-xs text-slate-500 mt-1">Fed into the LLM Embedding Layer & Context Window</div>
+          </div>
+
+          <!-- Stats Grid -->
+          <div class="stats-grid mb-6">
+            <div class="stat-item">
+              <div id="count-original-words" class="stat-value text-slate-900">0</div>
+              <div class="stat-label">Original Word Count</div>
+            </div>
+            <div class="stat-item">
+              <div id="count-original-tokens" class="stat-value text-cyan-400">0</div>
+              <div class="stat-label">Original Token Count</div>
+            </div>
+            <div class="stat-item">
+              <div id="count-known-tokens" class="stat-value text-emerald-400">0</div>
+              <div class="stat-label">Known Tokens</div>
+            </div>
+            <div class="stat-item">
+              <div id="count-unknown-tokens" class="stat-value text-rose-400">0</div>
+              <div class="stat-label">Unseen Tokens</div>
+            </div>
+            <div class="stat-item">
+              <div id="count-fallback-pieces" class="stat-value text-amber-400">0</div>
+              <div class="stat-label">Sub-token Pieces</div>
+            </div>
+            <div class="stat-item">
+              <div id="count-final-tokens" class="stat-value text-purple-400">0</div>
+              <div class="stat-label">Final Context Tokens</div>
+            </div>
+          </div>
+
+          <!-- Transformation Visual Comparison -->
+          <div class="p-4 rounded-lg bg-slate-50 border border-slate-200">
+            <div class="text-xs font-semibold text-slate-500 mb-2">Original Raw Sentence Tokens</div>
+            <div id="transform-original-tokens" class="flex flex-wrap gap-2 mb-3"></div>
+
+            <div class="text-center my-2 text-cyan-400 font-bold text-lg">&darr; Token Stream Ready for Embedding Matrix &darr;</div>
+
+            <div class="text-xs font-semibold text-slate-500 mb-2">Final Token Input Sequence</div>
+            <div id="transform-final-tokens" class="flex flex-wrap gap-2"></div>
+          </div>
+
+          <div class="slide-action-bar">
+            <button class="btn btn-secondary" data-prev-slide="2">&uarr; Previous Slide</button>
+            <button class="btn btn-primary" data-next-slide="4">Next Slide: Vector Embeddings &darr;</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================
+           VERTICAL SLIDE 4: VECTOR EMBEDDINGS
+           ======================================================== -->
+      <section id="slide-4" class="slide-section" data-stage="4">
+        <div class="glass-card">
+          <div class="card-header-bar">
+            <div>
+              <span class="slide-header-badge">Slide 04 / 05 • Module 5</span>
+              <h2 class="card-title mt-1">Vector Embeddings: Translating Tokens to Numbers</h2>
+              <p class="card-desc">Each token ID functions as a lookup pointer in an embedding matrix $E \in \mathbb{R}^{V \times d}$, retrieving a continuous coordinate vector.</p>
+            </div>
+
+            <!-- Embedding Mode Toggle -->
+            <div class="flex items-center gap-2">
+              <button id="btn-emb-meaning" class="btn btn-primary btn-sm">B. Meaning-Based (Semantic)</button>
+              <button id="btn-emb-spelling" class="btn btn-secondary btn-sm">A. Spelling-Based (Orthographic)</button>
+            </div>
+          </div>
+
+          <!-- Mathematical Explanation Box -->
+          <div class="math-formula-box">
+            <div>
+              <span class="text-slate-500 font-medium">Embedding Lookup: </span>
+              <span class="formula-highlight text-cyan-400">&mathbf;v = \mathbf{e}_{id} \times \mathbf{W}_{embed} &isin; &reals;<sup>d</sup></span>
+            </div>
+            <div class="text-xs text-slate-600 font-mono">
+              Cosine Similarity: <span class="formula-highlight text-blue-600">&cos;(&theta;) = (&mathbf;u &middot; &mathbf;v) / (||&mathbf;u|| ||&mathbf;v||)</span>
+            </div>
+          </div>
+
+          <!-- Word Selector & Custom Word Input -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; align-items: flex-end;">
+            <div>
+              <label class="text-xs font-semibold text-slate-500 block mb-1">Select Word from Dataset</label>
+              <select id="emb-word-select" class="input-styled" style="width: 100%;">
+                <!-- Dynamic options -->
+              </select>
+            </div>
+
+            <div>
+              <label class="text-xs font-semibold text-slate-500 block mb-1">Or Enter Custom Word</label>
+              <div class="flex gap-2">
+                <input type="text" id="emb-custom-word-input" class="input-styled" placeholder="e.g. galaxy, robot..." style="flex: 1;">
+                <button id="btn-test-custom-word" class="btn btn-secondary btn-sm">Compute Vector</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Selected Word Metadata Banner -->
+          <div class="p-4 rounded-lg bg-blue-50/60 border border-blue-100 mb-4">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center font-bold font-mono text-white text-lg shadow-sm">
+                  &lambda;
+                </div>
+                <div>
+                  <div class="text-xs text-slate-500">Inspected Word</div>
+                  <div id="emb-current-word" class="text-xl font-bold font-mono text-slate-900">artificial</div>
+                </div>
+              </div>
+
+              <div>
+                <span class="text-xs text-slate-500 block">Semantic Category</span>
+                <span id="emb-current-category" class="font-bold text-blue-700">Technology</span>
+              </div>
+
+              <div>
+                <span class="text-xs text-slate-500 block">3D Coordinates (X, Y, Z)</span>
+                <span class="font-mono text-sm text-slate-700 font-semibold">
+                  X: <strong id="emb-coord-x" class="text-blue-600">0.5</strong> | 
+                  Y: <strong id="emb-coord-y" class="text-blue-600">-1.2</strong> | 
+                  Z: <strong id="emb-coord-z" class="text-blue-600">-2.5</strong>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Feature Dimensions Table -->
+          <div class="table-responsive" style="max-height: 280px;">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th style="width: 100px;">Dimension</th>
+                  <th>Feature Representation</th>
+                  <th style="width: 130px;">Coordinate Value</th>
+                  <th style="width: 220px;">Visual Magnitude</th>
+                </tr>
+              </thead>
+              <tbody id="emb-dimensions-table-body">
+                <!-- Injected dynamically -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="slide-action-bar">
+            <button class="btn btn-secondary" data-prev-slide="3">&uarr; Previous Slide</button>
+            <button class="btn btn-primary" data-next-slide="5">Next Slide: 2D & 3D Vector Space &darr;</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================
+           VERTICAL SLIDE 5: 2D & 3D VECTOR SPACE & SIMILARITY
+           ======================================================== -->
+      <section id="slide-5" class="slide-section" data-stage="5">
+        <div class="glass-card">
+          <div class="card-header-bar">
+            <div>
+              <span class="slide-header-badge">Slide 05 / 05 • Module 6</span>
+              <h2 class="card-title mt-1">Vector Coordinate Space & Similarity Explorer</h2>
+              <p class="card-desc">Interactive 3D & 2D Euclidean coordinate projections. Rotate, zoom, inspect vectors, and compute mathematical cosine similarities.</p>
+            </div>
+
+            <!-- View toggle (3D vs 2D) -->
+            <div class="flex items-center gap-2">
+              <button id="btn-view-3d" class="btn btn-primary btn-sm">3D Three.js View</button>
+              <button id="btn-view-2d" class="btn btn-secondary btn-sm">2D Coordinate Plane</button>
+              <button id="btn-reset-camera" class="btn btn-secondary btn-sm" title="Reset Camera View">Reset Camera</button>
+            </div>
+          </div>
+
+          <!-- Category Filters -->
+          <div class="flex items-center gap-2 mb-3 overflow-x-auto pb-1" style="scrollbar-width: none;">
+            <span class="text-xs text-slate-500 font-semibold whitespace-nowrap">Filter Category:</span>
+            <button class="btn btn-secondary btn-sm btn-category-filter active" data-category="all">All Words</button>
+            <button class="btn btn-secondary btn-sm btn-category-filter" data-category="Royalty">Royalty</button>
+            <button class="btn btn-secondary btn-sm btn-category-filter" data-category="Fruit">Fruit</button>
+            <button class="btn btn-secondary btn-sm btn-category-filter" data-category="Vehicle">Vehicle</button>
+            <button class="btn btn-secondary btn-sm btn-category-filter" data-category="Technology">Technology</button>
+            <button class="btn btn-secondary btn-sm btn-category-filter" data-category="Animal">Animal</button>
+            <button class="btn btn-secondary btn-sm btn-category-filter" data-category="Emotion">Emotion</button>
+          </div>
+
+          <!-- Visualizer Viewport Container -->
+          <div class="visualizer-container">
+            <!-- 3D Three.js Container -->
+            <div id="vis-3d-wrap" class="visualizer-canvas-wrap">
+              <div id="threejs-canvas-container" style="width: 100%; height: 100%;"></div>
+            </div>
+
+            <!-- 2D Canvas Container -->
+            <div id="vis-2d-wrap" class="visualizer-canvas-wrap" style="display: none;">
+              <canvas id="canvas-2d-viewport"></canvas>
+            </div>
+
+            <!-- 3D Tooltip Overlay -->
+            <div id="three-tooltip"></div>
+
+            <!-- On-canvas Control Hints -->
+            <div class="vis-controls-overlay">
+              <span>🖱️ <strong>Left Drag:</strong> Rotate</span>
+              <span>•</span>
+              <span>📜 <strong>Scroll:</strong> Zoom</span>
+              <span>•</span>
+              <span>👉 <strong>Right Drag:</strong> Pan</span>
+              <span>•</span>
+              <span>🎯 <strong>Click:</strong> Inspect</span>
+            </div>
+
+            <!-- Floating HUD Card (Light Card) -->
+            <div id="vis-hud-card" class="vis-hud-card">
+              <div class="text-[10px] uppercase font-bold text-blue-600 tracking-wider">Vector Inspector HUD</div>
+              <div id="hud-word-title" class="text-lg font-bold font-mono text-slate-900 mt-1">artificial</div>
+              <div id="hud-word-category" class="text-xs text-slate-600">Category: Technology</div>
+
+              <div class="mt-2 pt-2 border-t border-slate-200 text-xs font-mono text-slate-700">
+                X: <span id="hud-coord-x" class="text-blue-600 font-bold">0.5</span> | 
+                Y: <span id="hud-coord-y" class="text-blue-600 font-bold">-1.2</span> | 
+                Z: <span id="hud-coord-z" class="text-blue-600 font-bold">-2.5</span>
+              </div>
+
+              <div class="mt-3">
+                <div class="text-[11px] font-semibold text-slate-600 mb-1">Top Nearest Semantic Neighbors:</div>
+                <div id="hud-neighbors-list" class="space-y-1">
+                  <!-- Populated dynamically -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Similarity Comparison Workbench -->
+          <div class="mt-6 p-4 rounded-lg bg-slate-50 border border-slate-200">
+            <div class="card-header-bar mb-3">
+              <div>
+                <h3 class="card-title text-base">Mathematical Similarity Workbench</h3>
+                <p class="card-desc">Compare two vectors using Cosine Similarity, Dot Product, and Euclidean Distance.</p>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; align-items: flex-end; margin-bottom: 1.25rem;">
+              <div>
+                <label class="text-xs font-semibold text-slate-500 block mb-1">Word Vector A (&mathbf;u)</label>
+                <select id="sim-word-a-select" class="input-styled" style="width: 100%;">
+                  <!-- Dynamic options -->
+                </select>
+              </div>
+
+              <div>
+                <label class="text-xs font-semibold text-slate-500 block mb-1">Word Vector B (&mathbf;v)</label>
+                <select id="sim-word-b-select" class="input-styled" style="width: 100%;">
+                  <!-- Dynamic options -->
+                </select>
+              </div>
+
+              <div>
+                <button id="btn-calculate-similarity" class="btn btn-primary" style="width: 100%; height: 40px;">
+                  Compute Mathematical Similarity
+                </button>
+              </div>
+            </div>
+
+            <!-- Mathematical Output Metrics -->
+            <div class="stats-grid mb-3">
+              <div class="stat-item">
+                <div id="sim-val-cosine" class="stat-value text-cyan-400">0.9980</div>
+                <div class="stat-label">Cosine Similarity &cos;(&theta;)</div>
+              </div>
+              <div class="stat-item">
+                <div id="sim-val-angle" class="stat-value text-purple-400">3.62&deg;</div>
+                <div class="stat-label">Angular Separation (&theta;)</div>
+              </div>
+              <div class="stat-item">
+                <div id="sim-val-dot" class="stat-value text-emerald-400">2.4510</div>
+                <div class="stat-label">Dot Product &mathbf;u &middot; &mathbf;v</div>
+              </div>
+              <div class="stat-item">
+                <div id="sim-val-euclidean" class="stat-value text-amber-400">0.1240</div>
+                <div class="stat-label">Euclidean Distance d(&mathbf;u, &mathbf;v)</div>
+              </div>
+            </div>
+
+            <!-- Similarity Bar -->
+            <div>
+              <div class="flex justify-between text-xs text-slate-600 mb-1">
+                <span>Vector Alignment: <span id="sim-calc-word-a" class="text-blue-600 font-mono font-bold">king</span> vs <span id="sim-calc-word-b" class="text-blue-600 font-mono font-bold">queen</span></span>
+                <span class="text-blue-600 font-mono font-bold">1.0 = Identical Direction</span>
+              </div>
+              <div class="w-full bg-slate-200 rounded-full h-3 overflow-hidden border border-slate-300">
+                <div id="sim-progress-bar" class="h-3 rounded-full" style="background: linear-gradient(90deg, #2563eb, #0284c7); width: 98%; transition: width 0.4s ease;"></div>
+              </div>
+            </div>
+
+            <div class="mt-3 flex justify-between text-xs text-slate-500 font-mono">
+              <span>Magnitude ||&mathbf;u||: <strong id="sim-val-mag-a" class="text-slate-800">1.62</strong></span>
+              <span>Magnitude ||&mathbf;v||: <strong id="sim-val-mag-b" class="text-slate-800">1.64</strong></span>
+            </div>
+          </div>
+
+          <div class="slide-action-bar">
+            <button class="btn btn-secondary" data-prev-slide="4">&uarr; Previous Slide</button>
+            <button class="btn btn-primary" onclick="window.scrollToSlide(1)">Slide Back to Top &uarr;</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ============================================================
+       TOKEN INSPECTOR MODAL
+       ============================================================ -->
+  <div id="token-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200 mb-4">
+        <h3 id="modal-token-title" class="text-lg font-bold font-mono text-blue-600">Token Details</h3>
+        <button id="btn-close-modal" class="text-slate-400 hover:text-slate-700 text-2xl font-bold">&times;</button>
+      </div>
+      <div id="modal-token-details">
+        <!-- Injected dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Scripts -->
+  <script src="js/state.js"></script>
+  <script src="js/tokenizer.js"></script>
+  <script src="js/embeddings.js"></script>
+  <script src="js/visualizer3d.js"></script>
+  <script src="js/visualizer2d.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
